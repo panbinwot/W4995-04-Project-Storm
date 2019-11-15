@@ -1,7 +1,7 @@
 # helper functions for the data loading 
 import _pickle as pickle
 import numpy as np
-
+import os
 def convert(data):
     if isinstance(data, bytes):  return data.decode('ascii')
     if isinstance(data, dict):   return dict(map(convert, data.items()))

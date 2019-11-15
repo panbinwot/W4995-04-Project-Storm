@@ -12,8 +12,8 @@ from torch.autograd import Variable
 from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
 
-# the followings are self-defined
-import LoadBatch
+# the followings are self-implemented
+from LoadBatch import LoadBatch
 from helper import *
 
 def train_test(trainloader, testloader, net, optimizer, criterion, epochs):
