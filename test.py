@@ -24,56 +24,55 @@ def train_test(trainloader, testloader, net, optimizer, criterion, epochs):
   for epoch in range(epochs):
     
     for i,data in enumerate(trainloader, 0):
-      net.train()
-      batch_x = data[0].cuda()
-      batch_y = data[1].cuda()
-      optimizer.zero_grad()
-      output = net(batch_x)
-      loss = criterion(output, batch_y)
-      train_loss_lst.append(loss)
-      loss.backward()
-      optimizer.step()
+        net.train()s
+        batch_x = data[0]
+        batch_y = data[1]
+        optimizer.zero_grad()
+        output = net(batch_x)
+        loss = criterion(output, batch_y.long())
+        train_loss_lst.append(loss)
+        loss.backward()
+        optimizer.step()
 
       # Evaluate at this batch
 
-      net.eval()
-      with torch.no_grad():
+        net.eval()
+        with torch.no_grad():
+            optimizer.zero_grad()
+            outputs = net(batch_x)
+            _ , predicted = torch.max(outputs.data, 1)
+
+            train_pred_batch, train_target_batch, = predicted.cpu().detach().numpy(),data[1].cpu().detach().numpy()
+
+            train_acc = np.mean(train_pred_batch.astype(np.int)==train_target_batch )
+            train_acc_lst.append(train_acc)
+
+      # Test the function on the set
+        test_acc = test(testloader, net, optimizer, criterion)
+        test_acc_lst.append( test_acc)
+    
+        print("Epoch: {}, Batch: {}, Train Accuracy: {}, Test Accuracy: {}".format(epoch+1, i+1, round(train_acc,3), round(test_acc,3)))
+
+        i += 1
+
+    return train_loss_lst, train_acc_lst, test_acc_lst
+
+def test(testloader, net, optimizer, criterion):
+    test_pred, test_target = [], []
+    net.eval()
+    with torch.no_grad():
+        for data in testloader:
+      
+        batch_x =  data[0]
         optimizer.zero_grad()
         outputs = net(batch_x)
         _, predicted = torch.max(outputs.data, 1)
 
-        train_pred_batch, train_target_batch, = predicted.cpu().detach().numpy(),data[1].cpu().detach().numpy()
-
-        train_acc = np.mean(train_pred_batch.astype(np.int)==train_target_batch )
-        train_acc_lst.append(train_acc)
-
-      # Test the function on the set
-      test_acc = test(testloader, net, optimizer, criterion)
-      test_acc_lst.append( test_acc)
-      
-
-      print("Epoch: {}, Batch: {}, Train Accuracy: {}, Test Accuracy: {}".format(epoch+1, i+1, round(train_acc,3), round(test_acc,3)))
-
-      i += 1
-
-  return train_loss_lst, train_acc_lst, test_acc_lst
-
-def test(testloader, net, optimizer, criterion):
-  test_pred, test_target = [], []
-  net.eval()
-  with torch.no_grad():
-    for data in testloader:
-      
-      batch_x =  data[0].cuda()
-      optimizer.zero_grad()
-      outputs = net(batch_x)
-      _, predicted = torch.max(outputs.data, 1)
-
-      test_pred.append( predicted.cpu().detach().numpy() )
-      test_target.append(data[1].cpu().detach().numpy())
+        test_pred.append( predicted.cpu().detach().numpy() )
+        test_target.append(data[1].cpu().detach().numpy())
     test_pred = np.concatenate(test_pred).ravel()
     test_target = np.concatenate(test_target).ravel()
-  return np.mean(test_pred.astype(np.int)==test_target ) 
+    return np.mean(test_pred.astype(np.int)==test_target ) 
 
 def main():
     if not os.path.exists('./data/'):
@@ -81,7 +80,7 @@ def main():
         unzip_cmd = 'unzip data.zip'
         os.system(wget_cmd)
         os.system(unzip_cmd)
-    images, labels, mean, std = read_data('data/cifar10')
+    images, labels, mean, std = read_data('data/')
     
     batch_size = 64
 
@@ -90,15 +89,15 @@ def main():
     trainloader = DataLoader(data_train, batch_size=batch_size, shuffle=True, num_workers=2)
     testloader = DataLoader(data_test, batch_size=batch_size, shuffle=False, num_workers=2)
 
-    net = models.resnet34(pretrained=False).cuda()
+    net = models.resnet34(pretrained=False)
 
     adam_optim = torch.optim.Adam(net.parameters())
     adagrad_optim = torch.optim.Adagrad(net.parameters())
-    criterion = nn.CrossEntropyLoss().cuda()
+    criterion = nn.CrossEntropyLoss()
     res_Adam = train_test(trainloader, testloader, net, adam_optim, criterion, epochs = 1)
     res_Adagrad = train_test(trainloader, testloader ,net, adagrad_optim, criterion, epochs = 1)
 
-
+    print("working")
     plt.plot(res_Adam[0], label = "Adam")
     plt.plot(res_Adagrad[0], label = "Adagrad")
     plt.legend()
