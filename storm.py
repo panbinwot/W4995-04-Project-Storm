@@ -9,55 +9,61 @@ Example : SOURCE CODE FOR TORCH.OPTIM.SGD
 
 
 import torch
-from torch.optim import Optimizer
+from typing import *
+from torch.optim.optimizer import Optimizer, required
 
 class Storm(Optimizer):
-    def __init__(self, params, lr = 0.001, momentum = 0, dampening = 0, weight_decay = 0, nesterov = False ):
-        if lr < 0.0:
-            raise ValueError("Invalid learning rate: {}".format(lr))
-        if momentum < 0.0:
-            raise ValueError("Invalid momentum value: {}".format(momentum))
-        if weight_decay < 0.0:
-            raise ValueError("Invalid weight_decay value: {}".format(weight_decay))
+    def __init__(self, params, k=0.1, w=0.1, c=1):
+        if k < 0.0:
+            raise ValueError("Invalid k")
+        if w < 0.0:
+            raise ValueError("Invalid w")
+        if c is not required and c < 0.0:
+            raise ValueError("Invalid c")
 
-        defaults = dict(lr=lr, momentum=momentum, dampening=dampening,
-                        weight_decay=weight_decay, nesterov=nesterov)
+        defaults = dict(k=k, w=w, c=c)
+        super(Storm, self).__init__(params, defaults)
 
-        if nesterov and (momentum <= 0 or dampening != 0):
-            raise ValueError("Nesterov momentum requires a momentum and zero dampening")
-        super(SGD, self).__init__(params, defaults)
-
-    def __setstate__(self,state):
+    def __setstate__(self, state):
         super(Storm, self).__setstate__(state)
-        for group in self.add_param_groups:
-            group.setdefault("nesterov",False)
 
-        def step(self, closure = None):
+    def norm(self, tensor):
+        #TODO
+        return torch.norm(tensor)
 
-            loss = None
-            if closure is not None:
-                loss = closure()
-            for group in self.add_param_groups:
-                weight_decay =  group['weight_decay']
-                momentum = group['momentum']
-                dampening = group['dampening']
-                nesterov = group['nesterov']
+    def step(self, closure=None):
+        loss = None
+        if closure is not None:
+            loss = closure()
 
-                for  p in group['params']:
-                    if p.grad is None: continue
-                    d_p = p.grad.data 
-                    if weight_decay !=0:
-                        d_p.add_(weight_decay, p.data)
-                    if momentum != 0:
-                        param_state = self.state[p]
-                        if 'momentum_buffer' not in param_state:
-                            buf = param_state['momentum_buffer'] = torch.clone.(d_p).detach()
-                        else:
-                            buf = param_state['momentum_buffer']
-                            buf.mul_(momentum).add_(1 - dampening, d_p)
-                        if nesterov:
-                            d_p = d_p.add(momentum, buf)
-                        else:
-                            d_p = buf
-                    p.data.add_(-group['lr'],d_p)
+        for group in self.param_groups:
+            k = group['k']
+            w = group['w']
+            c = group['c']
+
+            for p in group['params']:
+                if p.grad is None: continue
+                d_p = p.grad.data
+
+                param_state = self.state[p]
+                if 'storm_d' not in param_state:
+                    buf_d = param_state['storm_d'] = torch.clone(d_p).detach()
+                    # buf_g = param_state['storm_g'] = self.norm(d_p) ** 2
+                    buf_g = param_state['storm_g'] = self.norm(d_p)
+                    buf_lr = k / (w ** (1.0 / 3.0))
+                    p.data.add_(-buf_lr, buf_d)
+                    param_state['storm_momentum'] = c * (buf_lr ** 2)
+
+                else:
+                    buf_d = param_state['storm_d']
+                    buf_g = param_state['storm_g']
+                    buf_momentum = param_state['storm_momentum']
+
+                    # buf_g.add_(self.norm(d_p) ** 2)
+                    buf_g.add_(self.norm(d_p))
+                    buf_d.add_(d_p).add_((1 - buf_momentum) * (buf_d - d_p))
+                    buf_lr = k / ((w + buf_g) ** (1.0 / 3.0))
+
+                    p.data.add_(-buf_lr, d_p)
+                    param_state['storm_momentum'] = c * (buf_lr ** 2)
         return loss
