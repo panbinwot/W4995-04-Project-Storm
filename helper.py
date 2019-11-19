@@ -2,6 +2,8 @@
 import _pickle as pickle
 import numpy as np
 import os
+from matplotlib import pyplot as plt
+
 def convert(data):
 		if isinstance(data, bytes):  return data.decode('ascii')
 		if isinstance(data, dict):   return dict(map(convert, data.items()))
@@ -78,3 +80,13 @@ def read_data(data_path, num_valids=5000):
 	labels['train'] = labels['train'].astype(np.long)
 
 	return images, labels, mean, std
+
+def plot(arrays, labels, dim, y_label):
+    for arr, label in zip(arrays, labels):
+        plt.plot(arr[dim], label=label)
+    plt.legend()
+    plt.xlabel("Steps")
+    plt.ylabel(y_label)
+    plt.show()
+    plt.savefig('./image_output/{}.png'.format(y_label))
+    return
