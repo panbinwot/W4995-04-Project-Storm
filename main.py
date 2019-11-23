@@ -13,7 +13,7 @@ from torch.autograd import Variable
 from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
 from tqdm import tqdm_notebook
-from LoadBatch import LoadBatch
+from BatchLoader import BatchLoader
 from storm import Storm
 from train import train
 from storm import Storm
@@ -25,13 +25,13 @@ def main():
         unzip_cmd = 'unzip data.zip'
         os.system(wget_cmd)
         os.system(unzip_cmd)
-    images, labels, _, __ = read_data('data/cifar10')
+    images, labels = read_data('data/cifar10')
 
     batch_size = 64
 
     print('Test data set shape:', images['test'].shape)
-    data_train = LoadBatch(np.moveaxis(images['train'], 3, 1), labels['train'])
-    data_test = LoadBatch(np.moveaxis(images['test'], 3, 1), labels['test'])
+    data_train = BatchLoader(np.moveaxis(images['train'], 3, 1), labels['train'])
+    data_test = BatchLoader(np.moveaxis(images['test'], 3, 1), labels['test'])
     trainloader = DataLoader(data_train, batch_size=batch_size, shuffle=True, num_workers=2)
     testloader = DataLoader(data_test, batch_size=batch_size, shuffle=False, num_workers=2)
 
@@ -48,9 +48,8 @@ def main():
                     test_freq=10, no_test=True, verbose=False)
         return sum(res[0]) / len(res[0])
 
-
-    # best_c = search(0, 1000, 5, call_storm)
-    best_c = 965
+    best_c = search(0, 1000, 5, call_storm)
+    best_c = 70
     print('best c is: ', best_c)
 
     net = models.resnet18(pretrained=False).cuda()

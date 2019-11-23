@@ -1,7 +1,7 @@
 from torch.autograd import Variable
 from torch.utils.data import Dataset
 
-class LoadBatch(Dataset):
+class BatchLoader(Dataset):
 	def __init__(self, X, y):
 		self.X = X
 		self.y = y

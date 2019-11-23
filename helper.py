@@ -4,40 +4,8 @@ import numpy as np
 import os
 from matplotlib import pyplot as plt
 
-def convert(data):
-		if isinstance(data, bytes):  return data.decode('ascii')
-		if isinstance(data, dict):   return dict(map(convert, data.items()))
-		if isinstance(data, tuple):  return map(convert, data)
-		return data
-
-def _read_data(data_path, train_files):
-	"""Reads CIFAR-10 format data. Always returns NHWC format.
-	Returns:
-		images: np tensor of size [N, H, W, C]
-		labels: np tensor of size [N]
-	"""
-	images, labels = [], []
-	for file_name in train_files:
-		full_name = os.path.join(data_path, file_name)
-		print(full_name)
-		with open(full_name, mode='rb') as finp:
-			data = pickle.load(finp, encoding='bytes')
-			data = convert(data)
-			batch_images = data["data"].astype(np.float32) / 255.0
-			batch_labels = np.array(data["labels"], dtype=np.int32)
-			images.append(batch_images)
-			labels.append(batch_labels)
-	images = np.concatenate(images, axis=0)
-	labels = np.concatenate(labels, axis=0)
-	images = np.reshape(images, [-1, 3, 32, 32])
-	images = np.transpose(images, [0, 2, 3, 1])
-
-	return images, labels
-
-
-def read_data(data_path, num_valids=5000):
-	print("-" * 80)
-	print("Reading data")
+def read_data(data_path):
+	print("I am reading data,...please wait for it")
 
 	images, labels = {}, {}
 
@@ -52,34 +20,42 @@ def read_data(data_path, num_valids=5000):
 		"test_batch",
 	]
 	images["train"], labels["train"] = _read_data(data_path, train_files)
-
-	if num_valids:
-		images["valid"] = images["train"][-num_valids:]
-		labels["valid"] = labels["train"][-num_valids:]
-
-		images["train"] = images["train"][:-num_valids]
-		labels["train"] = labels["train"][:-num_valids]
-	else:
-		images["valid"], labels["valid"] = None, None
-
 	images["test"], labels["test"] = _read_data(data_path, test_file)
-	
-	# Normalization
-	print("Prepropcess: [subtract mean], [divide std]")
+
+	print("Prepropcess: Normalization")
 	mean = np.mean(images["train"], axis=(0, 1, 2), keepdims=True)
 	std = np.std(images["train"], axis=(0, 1, 2), keepdims=True)
 
-	print("mean: {}".format(np.reshape(mean * 255.0, [-1])))
-	print("std: {}".format(np.reshape(std * 255.0, [-1])))
-
 	images["train"] = (images["train"] - mean) / std
-	if num_valids:
-		images["valid"] = (images["valid"] - mean) / std
 	images["test"] = (images["test"] - mean) / std
 	
 	labels['train'] = labels['train'].astype(np.long)
 
-	return images, labels, mean, std
+	return images, labels
+
+def _read_data(data_path, train_files):
+	images, labels = [], []
+	for file_name in train_files:
+		full_name = os.path.join(data_path, file_name)
+		print(full_name)
+		with open(full_name, mode='rb') as finp:
+			data = pickle.load(finp, encoding='bytes')
+			data = convert(data)
+			batch_images = data["data"].astype(np.float32) / 255.0
+			batch_labels = np.array(data["labels"], dtype=np.int32)
+			images.append(batch_images)
+			labels.append(batch_labels)
+	images,labels = np.concatenate(images, axis=0), np.concatenate(labels, axis=0)
+	images = np.reshape(images, [-1, 3, 32, 32])
+	images = np.transpose(images, [0, 2, 3, 1])
+
+	return images, labels
+
+def convert(data):
+		if isinstance(data, bytes):  return data.decode('ascii')
+		if isinstance(data, dict):   return dict(map(convert, data.items()))
+		if isinstance(data, tuple):  return map(convert, data)
+		return data
 
 def plot(arrays, labels, dim, y_label):
     for arr, label in zip(arrays, labels):

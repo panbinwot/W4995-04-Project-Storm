@@ -40,12 +40,6 @@ def train(train_loader, test_loader, net, optimizer, criterion, epochs, max_iter
 				net.eval()
 				with torch.no_grad():
 					optimizer.zero_grad()
-					# outputs = net(batch_x)
-					# _, predicted = torch.max(outputs.data, 1)
-
-					# train_pred_batch, train_target_batch, = predicted.cpu().detach().numpy(), data[1].cpu().detach().numpy()
-
-					# train_acc = np.mean(train_pred_batch.astype(np.int) == train_target_batch)
 					train_acc = test(train_loader, net, optimizer, 100)
 					train_acc_lst.append(train_acc)
 
