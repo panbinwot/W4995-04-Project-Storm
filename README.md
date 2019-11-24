@@ -20,11 +20,11 @@ torchvision == 0.4.2
 
 ## Test Framework
 We use the ResNet18 as introduced [here](https://pytorch.org/hub/pytorch_vision_resnet/) to test the performance of STORM. We compared STORM with SGD, Adam  and interms of loss, train and test accuracy. </br>
-For STORM,
-Some numbers
+For STORM, k=w= 0.1. c required grid serach. For SGD, Adam, Adagrad, lr = 0.01, other hyperparameters are set as default. </br>
+Note that
 - batch_size = 64
 - Iterations = 100 epochs
-- 
+- Compute train/test accuracy on 100 batches every 100 steps
 
 ## Usage
 ```python
@@ -40,5 +40,7 @@ We display the loss, train/test accuracy.
 ![](image_output/train.png)
 ![](image_output/test.png)
 
+## Conclusion
+The selection of c is tricky. The paper never expose the c they are using in the paper. Maybe under some c, STORM might achieve the performance they claimed in their paper. However its very time consuming to find it. Also, during each update, u need to compute the gradient twice. Thus, the actual runtime is slower compared to other method who only need to compute once.
 # Reference
 [Momentum Schemes with Stochastic Variance Reduction for Nonconvex Composite Optimization](https://arxiv.org/abs/1902.02715)
