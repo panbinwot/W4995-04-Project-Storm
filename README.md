@@ -35,10 +35,10 @@ python3 main.py
 ```
 
 ## Result
-We display the loss, train/test accuracy.
-![](image_output/loss.png)
-![](image_output/train.png)
-![](image_output/test.png)
+We display the loss, train/test accuracy. </br>
+![](image_output/loss.png) </br>
+![](image_output/train.png) </br>
+![](image_output/test.png) </br>
 
 ## Conclusion
 The selection of c is tricky. The paper never expose the c they are using in the paper. Maybe under some c, STORM might achieve the performance they claimed in their paper. However its very time consuming to find it. Also, during each update, u need to compute the gradient twice. Thus, the actual runtime is slower compared to other method who only need to compute once.
