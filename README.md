@@ -52,6 +52,8 @@ We display the loss, train/test accuracy. </br>
      alt="Markdown Monster icon"
      style="float: center; margin-right: 10px;" />
      </p>
+
+     
 ## Conclusion
 The selection of c is tricky. The paper never expose the c they are using in the paper. Maybe under some c, STORM might achieve the performance they claimed in their paper. However its very time consuming to find it. Also, during each update, u need to compute the gradient twice. Thus, the actual runtime is slower compared to other method who only need to compute once.
 # Reference
