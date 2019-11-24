@@ -17,7 +17,7 @@ Python 3.6.8
 torch == 1.3.1
 torchvision == 0.4.2      
 ```
-
+OR view it on Google Colab. [HERE](https://colab.research.google.com/drive/15FXX6D_FLCss7R7jEFd8HBlR0QKav60a)
 ## Test Framework
 We use the ResNet18 as introduced [here](https://pytorch.org/hub/pytorch_vision_resnet/) to test the performance of STORM. We compared STORM with SGD, Adam  and interms of loss, train and test accuracy. </br>
 For STORM, k=w= 0.1. c required grid serach. For SGD, Adam, Adagrad, lr = 0.01, other hyperparameters are set as default. </br>
@@ -53,7 +53,7 @@ We display the loss, train/test accuracy. </br>
      style="float: center; margin-right: 10px;" />
      </p>
 
-     
+
 ## Conclusion
 The selection of c is tricky. The paper never expose the c they are using in the paper. Maybe under some c, STORM might achieve the performance they claimed in their paper. However its very time consuming to find it. Also, during each update, u need to compute the gradient twice. Thus, the actual runtime is slower compared to other method who only need to compute once.
 # Reference
